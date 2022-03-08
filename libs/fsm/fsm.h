@@ -27,9 +27,8 @@
 
 #include <cassert>
 
-#include <functional>
 #include <memory>
-#include <unordered_map>
+#include <vector>
 
 namespace fsm {
 namespace details {
@@ -76,7 +75,7 @@ struct trans_traits final
  *  \tparam TTrans
  *  \tparam TStateCont
  */
-template<typename TTrans, template<typename> class TStateCont>
+template<typename TTrans, template<typename> class TStateCont = std::vector>
 class fsm
 {
 private:
@@ -125,6 +124,8 @@ public:
         m_states.emplace_back(); // begin state 1
     }
 
+    const state_id& begin() const { return begin_state; }
+
     void clear() { m_states.clear(); }
 
     state_id follow(const state_id& st, const event_type& ev) const
@@ -166,8 +167,7 @@ public:
     {
         assert((from < m_states.size()) && "fsm::insert(): invalid state 'from'");
 
-        const state_id to = m_states.size();
-        m_states.emplace_back();
+        const state_id to = make_state_id();
 
         if (! m_states[from].insert(ev, to)) {
             return invalid_state;
@@ -176,10 +176,20 @@ public:
         return to;
     }
 
+    const state_id& invalid() const { return invalid_state; }
+
     bool is_available(const state_id& st) const
     {
         assert((st < m_states.size()) && "fsm::is_finite(): invalid state");
         return m_states[st].is_available;
+    }
+
+    void make_available(const state_id& st) { m_states[st].is_available = true; }
+
+    state_id make_state_id()
+    {
+        m_states.emplace_back();
+        return (m_states.size() - 1);
     }
 
     void reserve(const size_t size) const { m_states.reserve(size); }
@@ -187,8 +197,6 @@ public:
     size_t size() const { return m_states.size(); }
 
 private:
-    void make_available(const state_id& st) { m_states[st].is_available = true; }
-
     state_table m_states;
 };
 
