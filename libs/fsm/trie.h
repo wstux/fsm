@@ -55,6 +55,36 @@ public:
         : m_fsm(reserve_size)
     {}
 
+    trie(const trie& other)
+        : m_fsm(other.m_fsm)
+        , m_values(other.m_values)
+    {}
+
+    trie(trie&& other)
+        : m_fsm(std::move(other.m_fsm))
+        , m_values(std::move(other.m_values))
+    {}
+
+    trie& operator=(const trie& other)
+    {
+        if (this == &other) {
+            return *this;
+        }
+        m_fsm = other.m_fsm;
+        m_values = other.m_values;
+        return *this;
+    }
+
+    trie& operator=(trie&& other)
+    {
+        if (this == &other) {
+            return *this;
+        }
+        m_fsm = std::move(other.m_fsm);
+        std::swap(m_values, other.m_values);
+        return *this;
+    }
+
     const state_id& begin() const { return m_fsm.begin(); }
 
     void clear() { m_fsm.clear(); }
@@ -122,6 +152,15 @@ public:
     void set_value(const state_id& st, const value_type& val) { m_values[st] = val; }
 
     size_t size() const { return m_fsm.size(); }
+
+    void swap(trie& other)
+    {
+        if (this == &other) {
+            return;
+        }
+        m_fsm.swap(other.m_fsm);
+        std::swap(m_values, other.m_values);
+    }
 
     const value_type& value(const state_id& st) const { return m_values.at(st); }
 

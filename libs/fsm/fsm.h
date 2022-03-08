@@ -124,6 +124,32 @@ public:
         m_states.emplace_back(); // begin state 1
     }
 
+    fsm(const fsm& other)
+        : m_states(other.m_states)
+    {}
+
+    fsm(fsm&& other)
+        : m_states(std::move(other.m_states))
+    {}
+
+    fsm& operator=(const fsm& other)
+    {
+        if (this == &other) {
+            return *this;
+        }
+        m_states = other.m_states;
+        return *this;
+    }
+
+    fsm& operator=(fsm&& other)
+    {
+        if (this == &other) {
+            return *this;
+        }
+        std::swap(m_states, other.m_states);
+        return *this;
+    }
+
     const state_id& begin() const { return begin_state; }
 
     void clear() { m_states.clear(); }
@@ -195,6 +221,14 @@ public:
     void reserve(const size_t size) const { m_states.reserve(size); }
 
     size_t size() const { return m_states.size(); }
+
+    void swap(fsm& other)
+    {
+        if (this == &other) {
+            return;
+        }
+        std::swap(m_states, other.m_states);
+    }
 
 private:
     state_table m_states;

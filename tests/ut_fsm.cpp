@@ -34,9 +34,78 @@ TYPED_TEST(fsm, base_fsm)
     EXPECTED(! fsm.follow(std::string("a")));
     EXPECTED(! fsm.follow(std::string("ab")));
     EXPECTED(! fsm.follow(std::string("abc")));
+    EXPECTED(! fsm.follow(std::string("xxx")));
 
     for (const std::string& str : etalon) {
         EXPECTED(fsm.follow(str)) << str << std::endl;
+    }
+}
+
+TYPED_TEST(fsm, fsm_copy)
+{
+    using str_trans = TType;
+    using str_fsm = fsm::fsm<str_trans>;
+
+    const std::vector<std::string> etalon = {"abcd", "abce", "apple", "banana", "banan"};
+
+    str_fsm fsm_1;
+    for (const std::string& str : etalon) {
+        EXPECTED(fsm_1.insert(str)) << str << std::endl;
+    }
+
+    str_fsm fsm_2 = fsm_1;
+
+    for (const std::string& str : etalon) {
+        EXPECTED(fsm_1.follow(str)) << str << std::endl;
+        EXPECTED(fsm_2.follow(str)) << str << std::endl;
+    }
+}
+
+TYPED_TEST(fsm, fsm_move)
+{
+    using str_trans = TType;
+    using str_fsm = fsm::fsm<str_trans>;
+
+    const std::vector<std::string> etalon = {"abcd", "abce", "apple", "banana", "banan"};
+
+    str_fsm fsm_1;
+    for (const std::string& str : etalon) {
+        EXPECTED(fsm_1.insert(str)) << str << std::endl;
+    }
+
+    str_fsm fsm_2 = std::move(fsm_1);
+
+    for (const std::string& str : etalon) {
+        EXPECTED(fsm_2.follow(str)) << str << std::endl;
+    }
+}
+
+TYPED_TEST(fsm, fsm_swap)
+{
+    using str_trans = TType;
+    using str_fsm = fsm::fsm<str_trans>;
+
+    const std::vector<std::string> etalon_1 = {"abcd", "abce", "apple", "banana", "banan"};
+    const std::vector<std::string> etalon_2 = {"abcz", "abcx", "applz", "bananz", "banaz"};
+
+    str_fsm fsm_1;
+    for (const std::string& str : etalon_1) {
+        EXPECTED(fsm_1.insert(str)) << str << std::endl;
+    }
+    str_fsm fsm_2;
+    for (const std::string& str : etalon_2) {
+        EXPECTED(fsm_2.insert(str)) << str << std::endl;
+    }
+
+    fsm_2.swap(fsm_1);
+
+    for (const std::string& str : etalon_1) {
+        EXPECTED(! fsm_1.follow(str)) << str << std::endl;
+        EXPECTED(fsm_2.follow(str)) << str << std::endl;
+    }
+    for (const std::string& str : etalon_2) {
+        EXPECTED(fsm_1.follow(str)) << str << std::endl;
+        EXPECTED(! fsm_2.follow(str)) << str << std::endl;
     }
 }
 
@@ -50,20 +119,96 @@ TYPED_TEST(fsm, base_trie)
     str_trie trie;
     EXPECTED(trie.size() == 2);
     for (size_t i = 0; i < etalon.size(); ++i) {
-        const std::string& str = etalon[i];
-        EXPECTED(trie.insert(str, i)) << str << std::endl;
+        EXPECTED(trie.insert(etalon[i], i)) << etalon[i] << std::endl;
     }
 
     EXPECTED(! trie.follow(std::string("a")));
     EXPECTED(! trie.follow(std::string("ab")));
     EXPECTED(! trie.follow(std::string("abc")));
+    EXPECTED(! trie.follow(std::string("xxx")));
 
     for (size_t i = 0; i < etalon.size(); ++i) {
-        const std::string& str = etalon[i];
-
         size_t val;
-        EXPECTED(trie.follow(str, val)) << str << std::endl;
-        EXPECTED(val == i) << val << " != " << i << std::endl;
+        EXPECTED(trie.follow(etalon[i], val)) << etalon[i] << std::endl;
+        EXPECTED(val == i) << etalon[i] << ": " << val << " != " << i << std::endl;
+    }
+}
+
+TYPED_TEST(fsm, trie_copy)
+{
+    using str_trans = TType;
+    using str_trie = fsm::trie<size_t, str_trans>;
+
+    const std::vector<std::string> etalon = {"abcd", "abce", "apple", "banana", "banan"};
+
+    str_trie trie_1;
+    for (size_t i = 0; i < etalon.size(); ++i) {
+        EXPECTED(trie_1.insert(etalon[i], i)) << etalon[i] << std::endl;
+    }
+
+    str_trie trie_2 = trie_1;
+    for (size_t i = 0; i < etalon.size(); ++i) {
+        size_t val;
+        EXPECTED(trie_1.follow(etalon[i], val)) << etalon[i] << std::endl;
+        EXPECTED(val == i) << etalon[i] << ": " << val << " != " << i << std::endl;
+
+        EXPECTED(trie_2.follow(etalon[i], val)) << etalon[i] << std::endl;
+        EXPECTED(val == i) << etalon[i] << ": " << val << " != " << i << std::endl;
+    }
+}
+
+TYPED_TEST(fsm, trie_move)
+{
+    using str_trans = TType;
+    using str_trie = fsm::trie<size_t, str_trans>;
+
+    const std::vector<std::string> etalon = {"abcd", "abce", "apple", "banana", "banan"};
+
+    str_trie trie_1;
+    for (size_t i = 0; i < etalon.size(); ++i) {
+        EXPECTED(trie_1.insert(etalon[i], i)) << etalon[i] << std::endl;
+    }
+
+    str_trie trie_2 = std::move(trie_1);
+    for (size_t i = 0; i < etalon.size(); ++i) {
+        size_t val;
+        EXPECTED(trie_2.follow(etalon[i], val)) << etalon[i] << std::endl;
+        EXPECTED(val == i) << etalon[i] << ": " << val << " != " << i << std::endl;
+    }
+}
+
+TYPED_TEST(fsm, trie_swap)
+{
+    using str_trans = TType;
+    using str_trie = fsm::trie<size_t, str_trans>;
+
+    const std::vector<std::string> etalon_1 = {"abcd", "abce", "apple", "banana", "banan"};
+    const std::vector<std::string> etalon_2 = {"abcz", "abcx", "applz", "bananz", "banaz"};
+
+    str_trie trie_1;
+    for (size_t i = 0; i < etalon_1.size(); ++i) {
+        EXPECTED(trie_1.insert(etalon_1[i], i)) << etalon_1[i] << std::endl;
+    }
+    str_trie trie_2;
+    for (size_t i = 0; i < etalon_2.size(); ++i) {
+        EXPECTED(trie_2.insert(etalon_2[i], i)) << etalon_2[i] << std::endl;
+    }
+
+    trie_2.swap(trie_1);
+
+    for (size_t i = 0; i < etalon_1.size(); ++i) {
+        size_t val;
+        EXPECTED(! trie_1.follow(etalon_1[i], val)) << etalon_1[i] << std::endl;
+
+        EXPECTED(trie_2.follow(etalon_1[i], val)) << etalon_1[i] << std::endl;
+        EXPECTED(val == i) << etalon_1[i] << ": " << val << " != " << i << std::endl;
+    }
+    for (size_t i = 0; i < etalon_2.size(); ++i) {
+        size_t val;
+        EXPECTED(trie_1.follow(etalon_2[i], val)) << etalon_2[i] << std::endl;
+        EXPECTED(val == i) << etalon_2[i] << ": " << val << " != " << i << std::endl;
+
+        EXPECTED(! trie_2.follow(etalon_2[i], val)) << etalon_2[i] << std::endl;
     }
 }
 
