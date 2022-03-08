@@ -50,7 +50,7 @@ typename TTbl::mapped_type _follow_flex(const TEv& ev, const TTbl& tbl)
 template<typename TEv, typename TSt, typename TTbl>
 bool _insert_flat(const TEv& ev, const TSt& st, TTbl& tbl)
 {
-    if (tbl.size() > ev) {
+    if (tbl.size() > (size_t)ev) {
         tbl[ev] = st;
         return true;
     }

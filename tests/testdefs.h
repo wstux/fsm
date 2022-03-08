@@ -344,11 +344,11 @@ private:
 #define __TO_UTF16_STRING(x) u ## x
 #define __TO_UTF32_STRING(x) U ## x
 
-#define INIT_TYPE_TESTS(case_name, t1, t2, t3, t4, t5, t6, t7) \
+#define INIT_TYPE_TESTS(case_name, t1, t2) \
     namespace { \
-        using __private_test_types_list = std::tuple<t1, t2, t3, t4, t5, t6, t7>; \
+        using __private_test_types_list = std::tuple<t1, t2>; \
         ::tests::details::typed_tester<__private_test_types_list> \
-            __g_private_tester(#t1, #t2, #t3, #t4, #t5, #t6, #t7); \
+            __g_private_tester(#t1, #t2); \
     }
 
 #define TEST(case_name, test_name) \
